@@ -285,8 +285,10 @@
         // --- Utility Functions ---
         const saveDataToFirestore = async () => {
             if (!userId) return;
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // Sur GitHub Pages, __app_id n'existe pas, on utilise donc un nom par défaut
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mon-app-budget'; 
             try {
+                // Le chemin doit correspondre aux règles de sécurité de Firestore
                 const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
                 await setDoc(docRef, { transactions: transactions });
             } catch (error) {
@@ -475,8 +477,15 @@
 
         // --- Firebase Initialization ---
         const init = async () => {
-            // Utilise la configuration Firebase fournie par l'environnement
-            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+             // Remplacer par votre configuration Firebase
+            const firebaseConfig = {
+              apiKey: "AIzaSyB0bEY0OQgyg7xKmsjMgMOJTdegyFq2mf0",
+              authDomain: "gestion-de-budget-person-20573.firebaseapp.com",
+              projectId: "gestion-de-budget-person-20573",
+              storageBucket: "gestion-de-budget-person-20573.appspot.com",
+              messagingSenderId: "409223774743",
+              appId: "1:409223774743:web:bb48fd0e82e3a60bbc5252"
+            };
             
             // Initialisation de Firebase
             app = initializeApp(firebaseConfig);
@@ -491,7 +500,7 @@
                     
                     if (unsubscribe) unsubscribe(); // Detach previous listener
                     
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'mon-app-budget';
                     const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
                     unsubscribe = onSnapshot(docRef, (docSnap) => {
                         if (docSnap.exists()) {
@@ -511,11 +520,9 @@
             });
 
             try {
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Sur GitHub, on utilise toujours l'authentification anonyme
+                await signInAnonymously(auth);
+
             } catch (error) {
                 console.error("Authentication failed:", error);
             }
