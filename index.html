@@ -128,7 +128,7 @@
                         
                         <div class="sm:col-span-2">
                             <label for="description" class="block text-sm font-medium text-gray-600 mb-1">Description</label>
-                            <input id="description" placeholder="Ex: Salaire, Loyer, Nourriture..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <input id="description" placeholder="Ex: Salaire, Loyer, Nourriture..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required autocomplete="off">
                         </div>
 
                         <div>
@@ -285,10 +285,8 @@
         // --- Utility Functions ---
         const saveDataToFirestore = async () => {
             if (!userId) return;
-            // Sur GitHub Pages, __app_id n'existe pas, on utilise donc un nom par défaut
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'mon-app-budget'; 
             try {
-                // Le chemin doit correspondre aux règles de sécurité de Firestore
                 const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
                 await setDoc(docRef, { transactions: transactions });
             } catch (error) {
@@ -407,30 +405,41 @@
             excelTableBody.innerHTML = '';
             if (transactions.length === 0) {
                 excelTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-gray-500">Aucune donnée à afficher</td></tr>`;
-            } else {
-                const grouped = transactions.reduce((acc, t) => {
-                    if (!acc[t.category]) acc[t.category] = [];
-                    acc[t.category].push(t);
-                    return acc;
-                }, {});
-
-                categories.forEach(category => {
-                    if (grouped[category]) {
-                        grouped[category].sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).forEach((t, i) => {
-                            const row = document.createElement('tr');
-                            row.className = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-                            const isExpense = t.type === 'expense';
-                            row.innerHTML = `
-                                <td class="font-semibold">${t.category}</td>
-                                <td>${t.description}</td>
-                                <td class="text-right">${!isExpense ? formatCurrency(t.amount) : ''}</td>
-                                <td class="text-right">${isExpense ? formatCurrency(t.amount) : ''}</td>
-                            `;
-                            excelTableBody.appendChild(row);
-                        });
-                    }
-                });
+                return;
             }
+            
+            const grouped = transactions.reduce((acc, t) => {
+                if (!acc[t.category]) acc[t.category] = [];
+                acc[t.category].push(t);
+                return acc;
+            }, {});
+
+            categories.forEach(category => {
+                if (grouped[category]) {
+                    const categoryTransactions = grouped[category].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    
+                    categoryTransactions.forEach((t, i) => {
+                        const row = document.createElement('tr');
+                        row.className = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                        const isExpense = t.type === 'expense';
+                        
+                        let rowHTML = '';
+
+                        if (i === 0) {
+                            rowHTML += `<td class="font-semibold text-center" rowspan="${categoryTransactions.length}">${t.category}</td>`;
+                        }
+
+                        rowHTML += `
+                            <td>${t.description}</td>
+                            <td class="text-right">${!isExpense ? formatCurrency(t.amount) : ''}</td>
+                            <td class="text-right">${isExpense ? formatCurrency(t.amount) : ''}</td>
+                        `;
+                        
+                        row.innerHTML = rowHTML;
+                        excelTableBody.appendChild(row);
+                    });
+                }
+            });
 
             const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
             const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -458,6 +467,7 @@
             formTitleEl.textContent = 'Modifier la Transaction';
             submitBtnEl.textContent = 'Mettre à jour';
             submitBtnEl.classList.remove('btn-gradient');
+            submitBtnEl.classList.add('bg-blue-500', 'hover:bg-blue-600');
             cancelEditBtnEl.classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
@@ -471,6 +481,7 @@
             formTitleEl.textContent = 'Ajouter une Transaction';
             submitBtnEl.textContent = 'Ajouter';
             submitBtnEl.classList.add('btn-gradient');
+            submitBtnEl.classList.remove('bg-blue-500', 'hover:bg-blue-600');
             cancelEditBtnEl.classList.add('hidden');
             categoryEl.value = '';
         };
