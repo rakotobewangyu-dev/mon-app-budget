@@ -251,7 +251,7 @@
         let transactions = [];
         const categories = ['Revenu mensuel', 'Dépense mensuel fixe', 'Dépense mensuel variable', 'Dette'];
         
-        let db, auth;
+        let app, db, auth;
         let userId;
         let unsubscribe; // To detach the onSnapshot listener
 
@@ -475,14 +475,13 @@
 
         // --- Firebase Initialization ---
         const init = async () => {
-            const firebaseConfig = {
-  apiKey: "AIzaSyB0bEY0OQgyg7xKmsjMgMOJTdegyFq2mf0",
-  authDomain: "gestion-de-budget-person-20573.firebaseapp.com",
-  projectId: "gestion-de-budget-person-20573",
-  storageBucket: "gestion-de-budget-person-20573.firebasestorage.app",
-  messagingSenderId: "409223774743",
-  appId: "1:409223774743:web:bb48fd0e82e3a60bbc5252"
-};
+            // Utilise la configuration Firebase fournie par l'environnement
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            
+            // Initialisation de Firebase
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
 
             onAuthStateChanged(auth, user => {
                 if (user) {
