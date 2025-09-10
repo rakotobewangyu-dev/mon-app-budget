@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Budget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        /* Style pour une scrollbar plus discrète */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        .action-icon {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .action-icon:hover {
+            transform: scale(1.2);
+        }
+        /* Style pour les bordures du tableau Excel */
+        .excel-table td, .excel-table th {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            vertical-align: middle;
+        }
+        
+        .summary-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-gradient {
+            background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            transition: all 0.3s ease;
+            background-size: 200% auto;
+        }
+        .btn-gradient:hover {
+            background-position: right center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="text-gray-700">
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- En-tête -->
+        <header class="text-center mb-10 fade-in">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 tracking-tight">
+                Gestion d'Argent Personnel
+            </h1>
+            <p class="text-gray-500 mt-3 text-lg">Suivez vos finances en toute simplicité</p>
+        </header>
+        
+        <div id="user-info" class="text-center mb-4 p-2 bg-blue-100 text-blue-800 rounded-lg hidden">
+            Connecté en tant que: <span id="user-id" class="font-bold"></span>
+        </div>
+
+        <!-- Section des résumés -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 summary-card fade-in" style="animation-delay: 0.1s;">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-500">Revenu Total</h2>
+                    <div class="bg-green-100 rounded-full p-2">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h10M7 12h.01M17 12h.01M7 8h.01M17 8h.01"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"></path></svg>
+                    </div>
+                </div>
+                <p id="total-income" class="text-3xl font-bold text-green-600 mt-2">¥0</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 summary-card fade-in" style="animation-delay: 0.2s;">
+                 <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-500">Dépense Totale</h2>
+                    <div class="bg-red-100 rounded-full p-2">
+                       <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                </div>
+                <p id="total-expense" class="text-3xl font-bold text-red-600 mt-2">¥0</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 summary-card fade-in" style="animation-delay: 0.3s;">
+                 <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-500">Solde</h2>
+                    <div class="bg-blue-100 rounded-full p-2">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0 0l-6 2m6 2v10m6-10v10"></path></svg>
+                    </div>
+                </div>
+                <p id="balance" class="text-3xl font-bold text-gray-800 mt-2">¥0</p>
+            </div>
+        </div>
+
+        <!-- Layout principal pour les formulaires et l'historique -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Colonne de gauche: Formulaire et historique -->
+            <div class="lg:col-span-3">
+                <!-- Formulaire d'ajout/modification de transaction -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8 fade-in" style="animation-delay: 0.4s;">
+                    <h3 id="form-title" class="text-xl font-bold mb-4 text-gray-800">Ajouter une Transaction</h3>
+                    <form id="transaction-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="hidden" id="transaction-id">
+                        
+                        <div class="sm:col-span-2">
+                            <label for="description" class="block text-sm font-medium text-gray-600 mb-1">Description</label>
+                            <input id="description" placeholder="Ex: Salaire, Loyer, Nourriture..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+
+                        <div>
+                            <label for="amount" class="block text-sm font-medium text-gray-600 mb-1">Montant</label>
+                            <input type="number" id="amount" placeholder="¥" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="startDate" class="block text-sm font-medium text-gray-600 mb-1">Date de début</label>
+                            <input type="date" id="startDate" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+
+                        <div>
+                            <label for="endDate" class="block text-sm font-medium text-gray-600 mb-1">Date de fin</label>
+                            <input type="date" id="endDate" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                             <label for="category" class="block text-sm font-medium text-gray-600 mb-1">Catégorie</label>
+                             <select id="category" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Sélectionner une catégorie</option>
+                                <option value="Revenu mensuel">Revenu mensuel</option>
+                                <option value="Dépense mensuel fixe">Dépense mensuel fixe</option>
+                                <option value="Dépense mensuel variable">Dépense mensuel variable</option>
+                                <option value="Dette">Dette</option>
+                             </select>
+                        </div>
+
+                        <div>
+                            <label for="type" class="block text-sm font-medium text-gray-600 mb-1">Type</label>
+                            <select id="type" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="income">Revenu</option>
+                                <option value="expense" selected>Dépense</option>
+                            </select>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                             <button type="submit" id="submit-btn" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg transition-shadow">Ajouter</button>
+                             <button type="button" id="cancel-edit-btn" class="w-full mt-2 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors hidden">Annuler</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tableau de l'historique des transactions -->
+                <div class="mt-8 fade-in" style="animation-delay: 0.5s;">
+                    <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                        <h3 class="text-xl font-bold text-gray-800">Historique des Transactions</h3>
+                        <div class="flex items-center gap-2">
+                           <select id="filter" class="p-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all">Tout</option>
+                                <option value="income">Revenus</option>
+                                <option value="expense">Dépenses</option>
+                            </select>
+                            <button id="delete-all-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Tout Supprimer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
+                        <div class="hidden md:grid md:grid-cols-5 gap-4 p-4 font-bold text-left text-gray-600 border-b-2 border-gray-200 bg-gray-50">
+                            <div>Dates</div>
+                            <div>Description</div>
+                            <div>Catégorie</div>
+                            <div class="text-right">Montant</div>
+                            <div class="text-center">Actions</div>
+                        </div>
+                        <div id="transaction-list">
+                            <!-- Les transactions seront insérées ici par JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau de bord déplacé à la fin -->
+        <div class="mt-10 fade-in" style="animation-delay: 0.6s;">
+             <div class="flex justify-end mb-4">
+                 <button id="download-btn" class="bg-green-500 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 shadow hover:shadow-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Télécharger
+                 </button>
+             </div>
+            <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-200" id="dashboard-container">
+                 <h3 class="text-xl font-bold text-center mb-4 text-gray-800">Tableau de Bord Mensuel</h3>
+                 <div class="overflow-x-auto">
+                    <table class="w-full text-sm excel-table">
+                        <thead>
+                            <tr>
+                                <th class="bg-gray-800 text-white font-semibold">Catégorie</th>
+                                <th class="bg-gray-800 text-white font-semibold">Description</th>
+                                <th class="bg-green-600 text-white font-semibold">Revenu</th>
+                                <th class="bg-red-600 text-white font-semibold">Dépense</th>
+                            </tr>
+                        </thead>
+                        <tbody id="excel-table-body"></tbody>
+                         <tfoot>
+                            <tr class="font-bold bg-gray-100">
+                                <td colspan="2" class="text-right">TOTAL</td>
+                                <td id="excel-total-income" class="text-green-700 text-right">¥0</td>
+                                <td id="excel-total-expense" class="text-red-700 text-right">¥0</td>
+                            </tr>
+                            <tr class="font-bold bg-gray-200 text-lg">
+                                <td colspan="3" class="text-right">SOLDE FINAL</td>
+                                <td id="excel-final-balance" class="text-gray-800 text-right">¥0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                 </div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- State & Config ---
+        const today = new Date().toISOString().slice(0, 10);
+        let transactions = [];
+        const categories = ['Revenu mensuel', 'Dépense mensuel fixe', 'Dépense mensuel variable', 'Dette'];
+        
+        let db, auth;
+        let userId;
+        let unsubscribe; // To detach the onSnapshot listener
+
+        // --- DOM Elements ---
+        const balanceEl = document.getElementById('balance');
+        const totalIncomeEl = document.getElementById('total-income');
+        const totalExpenseEl = document.getElementById('total-expense');
+        const transactionListEl = document.getElementById('transaction-list');
+        const form = document.getElementById('transaction-form');
+        const descriptionEl = document.getElementById('description');
+        const amountEl = document.getElementById('amount');
+        const startDateEl = document.getElementById('startDate');
+        const endDateEl = document.getElementById('endDate');
+        const categoryEl = document.getElementById('category');
+        const typeEl = document.getElementById('type');
+        const transactionIdEl = document.getElementById('transaction-id');
+        const formTitleEl = document.getElementById('form-title');
+        const submitBtnEl = document.getElementById('submit-btn');
+        const cancelEditBtnEl = document.getElementById('cancel-edit-btn');
+        const filterEl = document.getElementById('filter');
+        const deleteAllBtn = document.getElementById('delete-all-btn');
+        const excelTableBody = document.getElementById('excel-table-body');
+        const excelTotalIncome = document.getElementById('excel-total-income');
+        const excelTotalExpense = document.getElementById('excel-total-expense');
+        const excelFinalBalance = document.getElementById('excel-final-balance');
+        const downloadBtn = document.getElementById('download-btn');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const userInfoEl = document.getElementById('user-info');
+        const userIdEl = document.getElementById('user-id');
+
+        // --- Utility Functions ---
+        const saveDataToFirestore = async () => {
+            if (!userId) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
+                await setDoc(docRef, { transactions: transactions });
+            } catch (error) {
+                console.error("Error saving data to Firestore: ", error);
+            }
+        };
+        const generateID = () => Date.now() + Math.random();
+        const formatCurrency = (amount) => new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleDateString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+
+        // --- Core Application Logic ---
+        const render = () => {
+            renderSummaryCards();
+            renderTransactionList();
+            renderExcelTable();
+        };
+
+        const updateAndSave = () => {
+            render();
+            saveDataToFirestore();
+        };
+
+        // --- CRUD Handlers ---
+        const handleFormSubmit = (e) => {
+            e.preventDefault();
+            const id = transactionIdEl.value ? Number(transactionIdEl.value) : null;
+            const description = descriptionEl.value.trim();
+            const category = categoryEl.value;
+            const startDate = startDateEl.value;
+            const endDate = endDateEl.value || startDate;
+
+            if (!description || amountEl.value === '' || !startDate || !category) return;
+            
+            if (id) {
+                transactions = transactions.map(t => t.id === id ? {
+                    ...t, startDate, endDate, description, amount: +amountEl.value,
+                    type: typeEl.value, category,
+                } : t);
+            } else {
+                transactions.push({
+                    id: generateID(), startDate, endDate, description, amount: +amountEl.value,
+                    type: typeEl.value, category,
+                });
+            }
+            
+            updateAndSave();
+            resetForm();
+        };
+        
+        window.deleteTransaction = (id) => {
+            transactions = transactions.filter(t => t.id !== id);
+            updateAndSave();
+        };
+
+        const deleteAllTransactions = () => {
+            transactions = [];
+            updateAndSave();
+        };
+        
+        const handleDownloadImage = () => {
+            html2canvas(dashboardContainer, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'tableau-de-bord-budget.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        };
+
+        // --- UI Rendering Functions ---
+        const renderSummaryCards = () => {
+            const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+            totalIncomeEl.textContent = formatCurrency(income);
+            totalExpenseEl.textContent = formatCurrency(expense);
+            balanceEl.textContent = formatCurrency(income - expense);
+            balanceEl.classList.toggle('text-red-600', income - expense < 0);
+        };
+
+        const renderTransactionList = () => {
+            transactionListEl.innerHTML = '';
+            const filtered = transactions.filter(t => filterEl.value === 'all' || t.type === filterEl.value);
+            
+            if (filtered.length === 0) {
+                transactionListEl.innerHTML = `<div class="p-6 text-center text-gray-500">Aucune transaction à afficher</div>`;
+                return;
+            }
+            
+            [...filtered].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)).forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 items-center p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50';
+                const isExpense = t.type === 'expense';
+                let dateDisplay = `Le ${formatDate(t.startDate)}`;
+                if (t.endDate && t.endDate !== t.startDate) {
+                     dateDisplay = `Du ${formatDate(t.startDate)}<br>Au ${formatDate(t.endDate)}`;
+                }
+                item.innerHTML = `
+                    <div class="text-gray-500 text-sm">${dateDisplay}</div>
+                    <div class="font-medium text-gray-800">${t.description}</div>
+                    <div class="text-gray-500">${t.category}</div>
+                    <div class="text-right font-semibold ${isExpense ? 'text-red-600' : 'text-green-600'} col-start-2 md:col-start-auto">
+                        ${isExpense ? '-' : '+'}${formatCurrency(Math.abs(t.amount))}
+                    </div>
+                    <div class="col-span-2 md:col-span-1 flex justify-end md:justify-center items-center gap-3">
+                        <svg onclick="window.editTransactionFlow(${t.id})" class="w-5 h-5 text-blue-500 action-icon hover:text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
+                        <svg onclick="window.deleteTransaction(${t.id})" class="w-5 h-5 text-red-500 action-icon hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </div>
+                `;
+                transactionListEl.appendChild(item);
+            });
+        };
+
+        const renderExcelTable = () => {
+            excelTableBody.innerHTML = '';
+            if (transactions.length === 0) {
+                excelTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-gray-500">Aucune donnée à afficher</td></tr>`;
+            } else {
+                const grouped = transactions.reduce((acc, t) => {
+                    if (!acc[t.category]) acc[t.category] = [];
+                    acc[t.category].push(t);
+                    return acc;
+                }, {});
+
+                categories.forEach(category => {
+                    if (grouped[category]) {
+                        grouped[category].sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).forEach((t, i) => {
+                            const row = document.createElement('tr');
+                            row.className = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                            const isExpense = t.type === 'expense';
+                            row.innerHTML = `
+                                <td class="font-semibold">${t.category}</td>
+                                <td>${t.description}</td>
+                                <td class="text-right">${!isExpense ? formatCurrency(t.amount) : ''}</td>
+                                <td class="text-right">${isExpense ? formatCurrency(t.amount) : ''}</td>
+                            `;
+                            excelTableBody.appendChild(row);
+                        });
+                    }
+                });
+            }
+
+            const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+            const finalBalance = totalIncome - totalExpense;
+
+            excelTotalIncome.textContent = formatCurrency(totalIncome);
+            excelTotalExpense.textContent = formatCurrency(totalExpense);
+            excelFinalBalance.textContent = formatCurrency(finalBalance);
+            excelFinalBalance.classList.toggle('text-red-600', finalBalance < 0);
+            excelFinalBalance.classList.toggle('text-gray-800', finalBalance >= 0);
+        };
+
+        // --- Form Edit Flow ---
+        window.editTransactionFlow = (id) => {
+            const t = transactions.find(t => t.id === id);
+            if (!t) return;
+            transactionIdEl.value = t.id;
+            startDateEl.value = t.startDate;
+            endDateEl.value = t.endDate || t.startDate;
+            descriptionEl.value = t.description;
+            amountEl.value = t.amount;
+            typeEl.value = t.type;
+            categoryEl.value = t.category;
+
+            formTitleEl.textContent = 'Modifier la Transaction';
+            submitBtnEl.textContent = 'Mettre à jour';
+            submitBtnEl.classList.remove('btn-gradient');
+            cancelEditBtnEl.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const resetForm = () => {
+            form.reset();
+            typeEl.value = 'expense';
+            startDateEl.value = today;
+            endDateEl.value = '';
+            transactionIdEl.value = '';
+            formTitleEl.textContent = 'Ajouter une Transaction';
+            submitBtnEl.textContent = 'Ajouter';
+            submitBtnEl.classList.add('btn-gradient');
+            cancelEditBtnEl.classList.add('hidden');
+            categoryEl.value = '';
+        };
+
+        // --- Firebase Initialization ---
+        const init = async () => {
+            const firebaseConfig = {
+  apiKey: "AIzaSyB0bEY0OQgyg7xKmsjMgMOJTdegyFq2mf0",
+  authDomain: "gestion-de-budget-person-20573.firebaseapp.com",
+  projectId: "gestion-de-budget-person-20573",
+  storageBucket: "gestion-de-budget-person-20573.firebasestorage.app",
+  messagingSenderId: "409223774743",
+  appId: "1:409223774743:web:bb48fd0e82e3a60bbc5252"
+};
+
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    userId = user.uid;
+                    userInfoEl.classList.remove('hidden');
+                    userIdEl.textContent = userId;
+                    
+                    if (unsubscribe) unsubscribe(); // Detach previous listener
+                    
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
+                    unsubscribe = onSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            transactions = docSnap.data().transactions || [];
+                        } else {
+                            transactions = [];
+                        }
+                        render();
+                    });
+                } else {
+                    userId = null;
+                    userInfoEl.classList.add('hidden');
+                    if(unsubscribe) unsubscribe();
+                    transactions = [];
+                    render();
+                }
+            });
+
+            try {
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+            }
+
+            // Setup Event Listeners
+            form.addEventListener('submit', handleFormSubmit);
+            cancelEditBtnEl.addEventListener('click', resetForm);
+            filterEl.addEventListener('change', render);
+            deleteAllBtn.addEventListener('click', deleteAllTransactions);
+            downloadBtn.addEventListener('click', handleDownloadImage);
+            
+            startDateEl.value = today;
+        };
+
+        init();
+    </script>
+</body>
+</html>
+
