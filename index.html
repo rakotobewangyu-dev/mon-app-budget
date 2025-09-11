@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Budget Avancée</title>
+    <title>Gestion de Budget</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Ajout de la bibliothèque Chart.js pour les graphiques -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body {
@@ -16,58 +14,59 @@
             background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
         }
         /* Style pour une scrollbar plus discrète */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-        .action-icon { cursor: pointer; transition: transform 0.2s ease-in-out, color 0.2s ease-in-out; }
-        .action-icon:hover { transform: scale(1.2); }
-        .excel-table td, .excel-table th { border: 1px solid #e2e8f0; padding: 10px 12px; vertical-align: middle; }
-        .summary-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .summary-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        .btn-gradient { background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); transition: all 0.3s ease; background-size: 200% auto; }
-        .btn-gradient:hover { background-position: right center; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        .action-icon {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .action-icon:hover {
+            transform: scale(1.2);
+        }
+        /* Style pour les bordures du tableau Excel */
+        .excel-table td, .excel-table th {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            vertical-align: middle;
+        }
         
-        /* --- NOUVEAUX STYLES POUR LA CALCULATRICE ET LES OUTILS --- */
-        .calculator-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        .summary-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .calculator-modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .calculator {
-            background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 320px; transform: scale(0.95); transition: transform 0.3s ease;
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .calculator-modal-overlay.active .calculator { transform: scale(1); }
-        .calculator-screen {
-            width: 100%; background: #f3f4f6; border-radius: 8px; padding: 15px 20px;
-            font-size: 2.5rem; text-align: right; font-weight: 700; color: #1f2937;
-            margin-bottom: 20px; border: 1px solid #e5e7eb; overflow-x: auto; white-space: nowrap;
+
+        .btn-gradient {
+            background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            transition: all 0.3s ease;
+            background-size: 200% auto;
         }
-        .calculator-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .calculator-key {
-            padding: 20px 0; font-size: 1.2rem; font-weight: 600; border-radius: 8px;
-            border: none; background: #f9fafb; color: #374151;
-            cursor: pointer; transition: background-color 0.2s, transform 0.1s; border: 1px solid #e5e7eb;
+        .btn-gradient:hover {
+            background-position: right center;
         }
-        .calculator-key:active { transform: scale(0.95); }
-        .calculator-key:hover { background: #f3f4f6; }
-        .calculator-key.operator { background-color: #fef3c7; color: #92400e; }
-        .calculator-key.equal-sign { background-color: #4facfe; color: white; grid-column: span 2; }
-        .calculator-key.clear { background-color: #fee2e2; color: #b91c1c; }
-        .floating-btn {
-            position: fixed; bottom: 30px; right: 30px;
-            width: 60px; height: 60px; border-radius: 50%;
-            background-image: linear-gradient(to right, #60a5fa 0%, #3b82f6 100%);
-            color: white; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;
-            z-index: 40; transition: transform 0.2s ease;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .floating-btn:hover { transform: scale(1.1); }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
     </style>
 </head>
 <body class="text-gray-700">
@@ -76,9 +75,9 @@
         <!-- En-tête -->
         <header class="text-center mb-10 fade-in">
             <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 tracking-tight">
-                Gestion d'Argent Personnelle
+                Gestion d'Argent Personnel
             </h1>
-            <p class="text-gray-500 mt-3 text-lg">Suivez et optimisez vos finances en toute simplicité</p>
+            <p class="text-gray-500 mt-3 text-lg">Suivez vos finances en toute simplicité</p>
         </header>
         
         <div id="user-info" class="text-center mb-4 p-2 bg-blue-100 text-blue-800 rounded-lg hidden">
@@ -116,41 +115,48 @@
             </div>
         </div>
 
-        <!-- Layout principal -->
+        <!-- Layout principal pour les formulaires et l'historique -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Colonne de gauche: Formulaire et historique -->
             <div class="lg:col-span-3">
                 <!-- Formulaire d'ajout/modification de transaction -->
                 <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8 fade-in" style="animation-delay: 0.4s;">
                     <h3 id="form-title" class="text-xl font-bold mb-4 text-gray-800">Ajouter une Transaction</h3>
                     <form id="transaction-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input type="hidden" id="transaction-id">
+                        
                         <div class="sm:col-span-2">
                             <label for="description" class="block text-sm font-medium text-gray-600 mb-1">Description</label>
                             <input id="description" placeholder="Ex: Salaire, Loyer, Nourriture..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required autocomplete="off">
                         </div>
+
                         <div>
                             <label for="amount" class="block text-sm font-medium text-gray-600 mb-1">Montant</label>
                             <input type="number" id="amount" placeholder="¥" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                         </div>
+                        
                         <div>
-                            <label for="startDate" class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+                            <label for="startDate" class="block text-sm font-medium text-gray-600 mb-1">Date de début</label>
                             <input type="date" id="startDate" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                         </div>
+
+                        <div>
+                            <label for="endDate" class="block text-sm font-medium text-gray-600 mb-1">Date de fin</label>
+                            <input type="date" id="endDate" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
                         <div>
                              <label for="category" class="block text-sm font-medium text-gray-600 mb-1">Catégorie</label>
                              <select id="category" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Sélectionner une catégorie</option>
-                                <option value="Revenu">Revenu</option>
-                                <option value="Logement">Logement</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Alimentation">Alimentation</option>
-                                <option value="Loisirs">Loisirs</option>
-                                <option value="Santé">Santé</option>
-                                <option value="Dettes">Dettes</option>
-                                <option value="Épargne">Épargne</option>
-                                <option value="Autre">Autre</option>
+                                <option value="Revenu mensuel">Revenu mensuel</option>
+                                <option value="Dépense mensuel fixe">Dépense mensuel fixe</option>
+                                <option value="Dépense mensuel variable">Dépense mensuel variable</option>
+                                <option value="Dette">Dette</option>
                              </select>
                         </div>
+
                         <div>
                             <label for="type" class="block text-sm font-medium text-gray-600 mb-1">Type</label>
                             <select id="type" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -158,6 +164,7 @@
                                 <option value="expense" selected>Dépense</option>
                             </select>
                         </div>
+
                         <div class="sm:col-span-2">
                              <button type="submit" id="submit-btn" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg transition-shadow">Ajouter</button>
                              <button type="button" id="cancel-edit-btn" class="w-full mt-2 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors hidden">Annuler</button>
@@ -165,7 +172,7 @@
                     </form>
                 </div>
 
-                <!-- Historique des transactions -->
+                <!-- Tableau de l'historique des transactions -->
                 <div class="mt-8 fade-in" style="animation-delay: 0.5s;">
                     <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
                         <h3 class="text-xl font-bold text-gray-800">Historique des Transactions</h3>
@@ -183,40 +190,22 @@
                     </div>
                     <div class="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
                         <div class="hidden md:grid md:grid-cols-5 gap-4 p-4 font-bold text-left text-gray-600 border-b-2 border-gray-200 bg-gray-50">
-                            <div>Date</div>
+                            <div>Dates</div>
                             <div>Description</div>
                             <div>Catégorie</div>
                             <div class="text-right">Montant</div>
                             <div class="text-center">Actions</div>
                         </div>
-                        <div id="transaction-list"></div>
+                        <div id="transaction-list">
+                            <!-- Les transactions seront insérées ici par JavaScript -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- NOUVELLE SECTION: Visualisation et Outils -->
-        <div class="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-8 fade-in" style="animation-delay: 0.6s;">
-            <!-- Graphique des dépenses -->
-            <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <h3 class="text-xl font-bold text-center mb-4 text-gray-800">Répartition des Dépenses</h3>
-                <div id="chart-container" class="relative h-72 md:h-80 flex justify-center items-center">
-                    <canvas id="expenseChart"></canvas>
-                    <p id="no-expense-data" class="text-gray-500 hidden">Aucune dépense à visualiser.</p>
-                </div>
-            </div>
-            <!-- Outil à venir -->
-            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-gray-200 flex flex-col justify-center items-center">
-                 <h3 class="text-xl font-bold text-center mb-4 text-gray-800">Outils d'Optimisation</h3>
-                 <div class="text-center">
-                    <svg class="w-16 h-16 mx-auto text-blue-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3M5.636 5.636l1.414 1.414m10.304 10.304l1.414 1.414M5.636 18.364l1.414-1.414m10.304-10.304l1.414-1.414"></path></svg>
-                    <p class="text-gray-600">Un outil de planification de dettes et d'objectifs d'épargne sera bientôt disponible !</p>
-                 </div>
-            </div>
-        </div>
-
-        <!-- Tableau de bord -->
-        <div class="mt-10 fade-in" style="animation-delay: 0.7s;">
+        <!-- Tableau de bord déplacé à la fin -->
+        <div class="mt-10 fade-in" style="animation-delay: 0.6s;">
              <div class="flex justify-end mb-4">
                  <button id="download-btn" class="bg-green-500 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 shadow hover:shadow-lg">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -252,43 +241,6 @@
             </div>
         </div>
     </div>
-
-    <!-- NOUVEAU: Bouton flottant pour la calculatrice -->
-    <div id="open-calculator-btn" class="floating-btn">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-3 10v-6m-6 3h12a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-    </div>
-
-    <!-- NOUVEAU: Fenêtre modale de la calculatrice -->
-    <div id="calculator-modal" class="calculator-modal-overlay">
-        <div class="calculator">
-            <div id="calculator-screen" class="calculator-screen">0</div>
-            <div class="calculator-keys">
-                <button type="button" class="calculator-key clear" value="clear">C</button>
-                <button type="button" class="calculator-key operator" value="/">&divide;</button>
-                <button type="button" class="calculator-key operator" value="*">&times;</button>
-                <button type="button" class="calculator-key" value="backspace">⌫</button>
-
-                <button type="button" class="calculator-key" value="7">7</button>
-                <button type="button" class="calculator-key" value="8">8</button>
-                <button type="button" class="calculator-key" value="9">9</button>
-                <button type="button" class="calculator-key operator" value="-">-</button>
-
-                <button type="button" class="calculator-key" value="4">4</button>
-                <button type="button" class="calculator-key" value="5">5</button>
-                <button type="button" class="calculator-key" value="6">6</button>
-                <button type="button" class="calculator-key operator" value="+">+</button>
-                
-                <button type="button" class="calculator-key" value="1">1</button>
-                <button type="button" class="calculator-key" value="2">2</button>
-                <button type="button" class="calculator-key" value="3">3</button>
-                <button type="button" class="calculator-key equal-sign" value="=">=</button>
-                
-                <button type="button" class="calculator-key" value="0" style="grid-column: span 2">0</button>
-                <button type="button" class="calculator-key" value=".">.</button>
-            </div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -297,32 +249,43 @@
         // --- State & Config ---
         const today = new Date().toISOString().slice(0, 10);
         let transactions = [];
-        let app, db, auth, userId, unsubscribe;
-        let expenseChart; // Référence pour le graphique
+        const categories = ['Revenu mensuel', 'Dépense mensuel fixe', 'Dépense mensuel variable', 'Dette'];
+        
+        let app, db, auth;
+        let userId;
+        let unsubscribe; // To detach the onSnapshot listener
 
         // --- DOM Elements ---
-        const balanceEl = document.getElementById('balance'), totalIncomeEl = document.getElementById('total-income'), totalExpenseEl = document.getElementById('total-expense');
-        const transactionListEl = document.getElementById('transaction-list'), form = document.getElementById('transaction-form'), descriptionEl = document.getElementById('description');
-        const amountEl = document.getElementById('amount'), startDateEl = document.getElementById('startDate'), categoryEl = document.getElementById('category'), typeEl = document.getElementById('type');
-        const transactionIdEl = document.getElementById('transaction-id'), formTitleEl = document.getElementById('form-title'), submitBtnEl = document.getElementById('submit-btn');
-        const cancelEditBtnEl = document.getElementById('cancel-edit-btn'), filterEl = document.getElementById('filter'), deleteAllBtn = document.getElementById('delete-all-btn');
-        const excelTableBody = document.getElementById('excel-table-body'), excelTotalIncome = document.getElementById('excel-total-income');
-        const excelTotalExpense = document.getElementById('excel-total-expense'), excelFinalBalance = document.getElementById('excel-final-balance');
-        const downloadBtn = document.getElementById('download-btn'), dashboardContainer = document.getElementById('dashboard-container');
-        const userInfoEl = document.getElementById('user-info'), userIdEl = document.getElementById('user-id');
-        const noExpenseDataEl = document.getElementById('no-expense-data');
-        const categories = Array.from(categoryEl.options).map(opt => opt.value).filter(Boolean);
-
-        // --- NOUVEAUX Éléments DOM ---
-        const openCalculatorBtn = document.getElementById('open-calculator-btn');
-        const calculatorModal = document.getElementById('calculator-modal');
-        const calculatorScreen = document.getElementById('calculator-screen');
-        const calculatorKeys = document.querySelector('.calculator-keys');
+        const balanceEl = document.getElementById('balance');
+        const totalIncomeEl = document.getElementById('total-income');
+        const totalExpenseEl = document.getElementById('total-expense');
+        const transactionListEl = document.getElementById('transaction-list');
+        const form = document.getElementById('transaction-form');
+        const descriptionEl = document.getElementById('description');
+        const amountEl = document.getElementById('amount');
+        const startDateEl = document.getElementById('startDate');
+        const endDateEl = document.getElementById('endDate');
+        const categoryEl = document.getElementById('category');
+        const typeEl = document.getElementById('type');
+        const transactionIdEl = document.getElementById('transaction-id');
+        const formTitleEl = document.getElementById('form-title');
+        const submitBtnEl = document.getElementById('submit-btn');
+        const cancelEditBtnEl = document.getElementById('cancel-edit-btn');
+        const filterEl = document.getElementById('filter');
+        const deleteAllBtn = document.getElementById('delete-all-btn');
+        const excelTableBody = document.getElementById('excel-table-body');
+        const excelTotalIncome = document.getElementById('excel-total-income');
+        const excelTotalExpense = document.getElementById('excel-total-expense');
+        const excelFinalBalance = document.getElementById('excel-final-balance');
+        const downloadBtn = document.getElementById('download-btn');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const userInfoEl = document.getElementById('user-info');
+        const userIdEl = document.getElementById('user-id');
 
         // --- Utility Functions ---
         const saveDataToFirestore = async () => {
             if (!userId) return;
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mon-app-budget'; 
             try {
                 const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
                 await setDoc(docRef, { transactions: transactions });
@@ -332,40 +295,60 @@
         };
         const generateID = () => Date.now() + Math.random();
         const formatCurrency = (amount) => new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
-        const formatDate = (dateString) => new Date(dateString).toLocaleDateString('fr-CA');
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleDateString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
 
         // --- Core Application Logic ---
         const render = () => {
             renderSummaryCards();
             renderTransactionList();
             renderExcelTable();
-            renderExpenseChart();
         };
-        const updateAndSave = () => { render(); saveDataToFirestore(); };
+
+        const updateAndSave = () => {
+            render();
+            saveDataToFirestore();
+        };
 
         // --- CRUD Handlers ---
         const handleFormSubmit = (e) => {
             e.preventDefault();
             const id = transactionIdEl.value ? Number(transactionIdEl.value) : null;
-            if (!descriptionEl.value || amountEl.value === '' || !startDateEl.value || !categoryEl.value) return;
-            const newTransaction = {
-                id: id || generateID(),
-                startDate: startDateEl.value,
-                description: descriptionEl.value.trim(),
-                amount: +amountEl.value,
-                type: typeEl.value,
-                category: categoryEl.value,
-            };
+            const description = descriptionEl.value.trim();
+            const category = categoryEl.value;
+            const startDate = startDateEl.value;
+            const endDate = endDateEl.value || startDate;
+
+            if (!description || amountEl.value === '' || !startDate || !category) return;
+            
             if (id) {
-                transactions = transactions.map(t => t.id === id ? newTransaction : t);
+                transactions = transactions.map(t => t.id === id ? {
+                    ...t, startDate, endDate, description, amount: +amountEl.value,
+                    type: typeEl.value, category,
+                } : t);
             } else {
-                transactions.push(newTransaction);
+                transactions.push({
+                    id: generateID(), startDate, endDate, description, amount: +amountEl.value,
+                    type: typeEl.value, category,
+                });
             }
+            
             updateAndSave();
             resetForm();
         };
-        window.deleteTransaction = (id) => { transactions = transactions.filter(t => t.id !== id); updateAndSave(); };
-        const deleteAllTransactions = () => { transactions = []; updateAndSave(); };
+        
+        window.deleteTransaction = (id) => {
+            transactions = transactions.filter(t => t.id !== id);
+            updateAndSave();
+        };
+
+        const deleteAllTransactions = () => {
+            transactions = [];
+            updateAndSave();
+        };
+        
         const handleDownloadImage = () => {
             html2canvas(dashboardContainer, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
@@ -375,7 +358,7 @@
             });
         };
 
-        // --- UI Rendering ---
+        // --- UI Rendering Functions ---
         const renderSummaryCards = () => {
             const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
             const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -384,19 +367,26 @@
             balanceEl.textContent = formatCurrency(income - expense);
             balanceEl.classList.toggle('text-red-600', income - expense < 0);
         };
+
         const renderTransactionList = () => {
             transactionListEl.innerHTML = '';
             const filtered = transactions.filter(t => filterEl.value === 'all' || t.type === filterEl.value);
+            
             if (filtered.length === 0) {
-                transactionListEl.innerHTML = `<div class="p-6 text-center text-gray-500">Aucune transaction</div>`;
+                transactionListEl.innerHTML = `<div class="p-6 text-center text-gray-500">Aucune transaction à afficher</div>`;
                 return;
             }
+            
             [...filtered].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)).forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 items-center p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50';
                 const isExpense = t.type === 'expense';
+                let dateDisplay = `Le ${formatDate(t.startDate)}`;
+                if (t.endDate && t.endDate !== t.startDate) {
+                     dateDisplay = `Du ${formatDate(t.startDate)}<br>Au ${formatDate(t.endDate)}`;
+                }
                 item.innerHTML = `
-                    <div class="text-gray-500 text-sm">${formatDate(t.startDate)}</div>
+                    <div class="text-gray-500 text-sm">${dateDisplay}</div>
                     <div class="font-medium text-gray-800">${t.description}</div>
                     <div class="text-gray-500">${t.category}</div>
                     <div class="text-right font-semibold ${isExpense ? 'text-red-600' : 'text-green-600'} col-start-2 md:col-start-auto">
@@ -410,32 +400,43 @@
                 transactionListEl.appendChild(item);
             });
         };
+
         const renderExcelTable = () => {
             excelTableBody.innerHTML = '';
-             if (transactions.length === 0) {
-                excelTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-gray-500">Aucune donnée</td></tr>`;
+            if (transactions.length === 0) {
+                excelTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-gray-500">Aucune donnée à afficher</td></tr>`;
                 return;
             }
+            
             const grouped = transactions.reduce((acc, t) => {
-                acc[t.category] = acc[t.category] || [];
+                if (!acc[t.category]) acc[t.category] = [];
                 acc[t.category].push(t);
                 return acc;
             }, {});
-            
+
             categories.forEach(category => {
                 if (grouped[category]) {
-                    grouped[category].forEach((t, i) => {
-                        const row = excelTableBody.insertRow();
+                    const categoryTransactions = grouped[category].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                    
+                    categoryTransactions.forEach((t, i) => {
+                        const row = document.createElement('tr');
+                        row.className = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
                         const isExpense = t.type === 'expense';
+                        
+                        let rowHTML = '';
+
                         if (i === 0) {
-                            const cell = row.insertCell();
-                            cell.textContent = t.category;
-                            cell.rowSpan = grouped[category].length;
-                            cell.className = "font-semibold text-center align-middle";
+                            rowHTML += `<td class="font-semibold text-center" rowspan="${categoryTransactions.length}">${t.category}</td>`;
                         }
-                        row.insertCell().textContent = t.description;
-                        row.insertCell().textContent = isExpense ? '' : formatCurrency(t.amount);
-                        row.insertCell().textContent = isExpense ? formatCurrency(t.amount) : '';
+
+                        rowHTML += `
+                            <td>${t.description}</td>
+                            <td class="text-right">${!isExpense ? formatCurrency(t.amount) : ''}</td>
+                            <td class="text-right">${isExpense ? formatCurrency(t.amount) : ''}</td>
+                        `;
+                        
+                        row.innerHTML = rowHTML;
+                        excelTableBody.appendChild(row);
                     });
                 }
             });
@@ -443,40 +444,12 @@
             const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
             const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
             const finalBalance = totalIncome - totalExpense;
+
             excelTotalIncome.textContent = formatCurrency(totalIncome);
             excelTotalExpense.textContent = formatCurrency(totalExpense);
             excelFinalBalance.textContent = formatCurrency(finalBalance);
-        };
-        
-        // --- NOUVELLE FONCTION: Affichage du graphique ---
-        const renderExpenseChart = () => {
-            const expenseData = transactions.filter(t => t.type === 'expense');
-            noExpenseDataEl.classList.toggle('hidden', expenseData.length > 0);
-            if (expenseChart) expenseChart.destroy();
-            if (expenseData.length === 0) return;
-
-            const dataByCategory = expenseData.reduce((acc, t) => {
-                acc[t.category] = (acc[t.category] || 0) + t.amount;
-                return acc;
-            }, {});
-
-            const ctx = document.getElementById('expenseChart').getContext('2d');
-            expenseChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(dataByCategory),
-                    datasets: [{
-                        data: Object.values(dataByCategory),
-                        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6'],
-                        borderColor: '#fff',
-                        borderWidth: 2,
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+            excelFinalBalance.classList.toggle('text-red-600', finalBalance < 0);
+            excelFinalBalance.classList.toggle('text-gray-800', finalBalance >= 0);
         };
 
         // --- Form Edit Flow ---
@@ -484,96 +457,68 @@
             const t = transactions.find(t => t.id === id);
             if (!t) return;
             transactionIdEl.value = t.id;
+            startDateEl.value = t.startDate;
+            endDateEl.value = t.endDate || t.startDate;
             descriptionEl.value = t.description;
             amountEl.value = t.amount;
-            startDateEl.value = t.startDate;
-            categoryEl.value = t.category;
             typeEl.value = t.type;
+            categoryEl.value = t.category;
 
             formTitleEl.textContent = 'Modifier la Transaction';
             submitBtnEl.textContent = 'Mettre à jour';
+            submitBtnEl.classList.remove('btn-gradient');
+            submitBtnEl.classList.add('bg-blue-500', 'hover:bg-blue-600');
             cancelEditBtnEl.classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
+
         const resetForm = () => {
             form.reset();
-            transactionIdEl.value = '';
-            startDateEl.value = today;
             typeEl.value = 'expense';
+            startDateEl.value = today;
+            endDateEl.value = '';
+            transactionIdEl.value = '';
             formTitleEl.textContent = 'Ajouter une Transaction';
             submitBtnEl.textContent = 'Ajouter';
+            submitBtnEl.classList.add('btn-gradient');
+            submitBtnEl.classList.remove('bg-blue-500', 'hover:bg-blue-600');
             cancelEditBtnEl.classList.add('hidden');
+            categoryEl.value = '';
         };
 
-        // --- NOUVEAU: Logique de la Calculatrice ---
-        const calculator = { displayValue: '0', firstOperand: null, waitingForSecondOperand: false, operator: null };
-        const updateDisplay = () => { calculatorScreen.textContent = calculator.displayValue.toLocaleString('en'); };
-        const handleCalculatorInput = (e) => {
-            const { target } = e;
-            if (!target.matches('button')) return;
-            const { value } = target;
-            if (Number.isInteger(parseFloat(value))) inputDigit(value);
-            else if (value === '.') inputDecimal();
-            else if (value === 'clear') resetCalculator();
-            else if (value === 'backspace') deleteLastDigit();
-            else handleOperator(value);
-            updateDisplay();
-        };
-        const inputDigit = (digit) => {
-            if (calculator.waitingForSecondOperand) {
-                calculator.displayValue = digit;
-                calculator.waitingForSecondOperand = false;
-            } else {
-                calculator.displayValue = calculator.displayValue === '0' ? digit : calculator.displayValue + digit;
-            }
-        };
-        const inputDecimal = () => { if (!calculator.displayValue.includes('.')) calculator.displayValue += '.'; };
-        const resetCalculator = () => { Object.assign(calculator, { displayValue: '0', firstOperand: null, waitingForSecondOperand: false, operator: null }); };
-        const deleteLastDigit = () => { calculator.displayValue = calculator.displayValue.slice(0, -1) || '0'; };
-        const handleOperator = (nextOperator) => {
-            const { firstOperand, displayValue, operator } = calculator;
-            const inputValue = parseFloat(displayValue);
-            if (operator && calculator.waitingForSecondOperand) { calculator.operator = nextOperator; return; }
-            if (firstOperand === null && !isNaN(inputValue)) {
-                calculator.firstOperand = inputValue;
-            } else if (operator) {
-                const result = calculate(firstOperand, inputValue, operator);
-                calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
-                calculator.firstOperand = result;
-            }
-            calculator.waitingForSecondOperand = true;
-            calculator.operator = nextOperator;
-             if (nextOperator === '=') {
-                calculator.waitingForSecondOperand = false;
-                calculator.operator = null;
-            }
-        };
-        const calculate = (a, b, op) => ({ '+': a + b, '-': a - b, '*': a * b, '/': a / b })[op] || b;
-
-        // --- Initialisation ---
+        // --- Firebase Initialization ---
         const init = async () => {
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+             // Remplacer par votre configuration Firebase
+            const firebaseConfig = {
+              apiKey: "AIzaSyB0bEY0OQgyg7xKmsjMgMOJTdegyFq2mf0",
+              authDomain: "gestion-de-budget-person-20573.firebaseapp.com",
+              projectId: "gestion-de-budget-person-20573",
+              storageBucket: "gestion-de-budget-person-20573.appspot.com",
+              messagingSenderId: "409223774743",
+              appId: "1:409223774743:web:bb48fd0e82e3a60bbc5252"
+            };
             
-            if (!firebaseConfig.projectId) {
-                console.error("FirebaseError: 'projectId' not provided in firebase.initializeApp.");
-                document.body.innerHTML = `<div class="text-red-600 text-center p-8">Erreur Critique: La configuration de Firebase est manquante. L'application ne peut pas démarrer.</div>`;
-                return;
-            }
-
+            // Initialisation de Firebase
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            
+
             onAuthStateChanged(auth, user => {
                 if (user) {
                     userId = user.uid;
                     userInfoEl.classList.remove('hidden');
                     userIdEl.textContent = userId;
-                    if (unsubscribe) unsubscribe();
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    
+                    if (unsubscribe) unsubscribe(); // Detach previous listener
+                    
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'mon-app-budget';
                     const docRef = doc(db, 'artifacts', appId, 'users', userId, 'budgets', 'data');
                     unsubscribe = onSnapshot(docRef, (docSnap) => {
-                        transactions = (docSnap.exists() && docSnap.data().transactions) ? docSnap.data().transactions : [];
+                        if (docSnap.exists()) {
+                            transactions = docSnap.data().transactions || [];
+                        } else {
+                            transactions = [];
+                        }
                         render();
                     });
                 } else {
@@ -585,25 +530,25 @@
                 }
             });
 
-            try { 
-                await (typeof __initial_auth_token !== 'undefined' ? signInWithCustomToken(auth, __initial_auth_token) : signInAnonymously(auth)); 
-            } catch (e) { console.error("Authentication error", e); }
-            
+            try {
+                // Sur GitHub, on utilise toujours l'authentification anonyme
+                await signInAnonymously(auth);
+
+            } catch (error) {
+                console.error("Authentication failed:", error);
+            }
+
+            // Setup Event Listeners
             form.addEventListener('submit', handleFormSubmit);
             cancelEditBtnEl.addEventListener('click', resetForm);
             filterEl.addEventListener('change', render);
             deleteAllBtn.addEventListener('click', deleteAllTransactions);
             downloadBtn.addEventListener('click', handleDownloadImage);
-            openCalculatorBtn.addEventListener('click', () => calculatorModal.classList.add('active'));
-            calculatorModal.addEventListener('click', (e) => { if (e.target === calculatorModal) calculatorModal.classList.remove('active'); });
-            calculatorKeys.addEventListener('click', handleCalculatorInput);
             
             startDateEl.value = today;
-            updateDisplay();
         };
 
         init();
     </script>
 </body>
 </html>
-
